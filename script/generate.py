@@ -9,8 +9,8 @@ from diffusers.pipelines import FlowMatchEulerDiscreteScheduler
 torch.cuda.empty_cache()
 gc.collect()
 
-print(f"CUDA 版本: {torch.version.cuda}")
-print(f"CUDA 是否可用: {torch.cuda.is_available()}")
+print(f"cuda 版本: {torch.version.cuda}")
+print(f"是否可用: {torch.cuda.is_available()}")
 print(f"可用 GPU 数量: {torch.cuda.device_count()}")
 
 for i in range(torch.cuda.device_count()):
@@ -19,10 +19,7 @@ for i in range(torch.cuda.device_count()):
     print(f"GPU {i} 内存: {property.total_memory / 1024 / 1024 / 1024:.2f} GB")
     print(f"GPU {i} 架构: {property.major}")
     print(f"GPU {i} 小版本: {property.minor}")
-    print(f"GPU {i} 最大线程数: {property.max_threads_per_block}")
-    print(f"GPU {i} 最大线程数: {property.max_threads_per_multiprocessor}")
-    print(f"GPU {i} 最大线程数: {property.max_threads_per_block}")
-    print(f"GPU {i} 最大线程数: {property.max_threads_per_block}")
+    print(f"CUDA 设备属性: {property}")
 
 # 根据 GPU 数量选择策略
 if torch.cuda.device_count() > 1:

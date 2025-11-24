@@ -18,5 +18,7 @@ bitsandbytes
 loguru==0.7.3
 diffusers @ git+https://github.com/huggingface/diffusers@7a2b78bf0f788d311cc96b61e660a8e13e3b1e63
 
---find-links https://download.pytorch.org/whl/cu121
-torch==2.7.1
+--find-links https://download.pytorch.org/whl/cu126
+torch==2.9.0
+torchaudio==2.9.0
+torchvision==0.24.0
