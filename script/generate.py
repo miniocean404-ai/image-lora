@@ -9,6 +9,8 @@ from diffusers.pipelines import FlowMatchEulerDiscreteScheduler
 torch.cuda.empty_cache()
 gc.collect()
 
+print(f"CUDA 版本: {torch.version.cuda}")
+print(f"CUDA 是否可用: {torch.cuda.is_available()}")
 print(f"可用 GPU 数量: {torch.cuda.device_count()}")
 
 for i in range(torch.cuda.device_count()):
