@@ -154,6 +154,8 @@ def main():
         if accelerator.is_main_process:
             cache_dir = os.path.join(args.output_dir, "cache")
             os.makedirs(cache_dir, exist_ok=True)
+        accelerator.wait_for_everyone()
+        cache_dir = os.path.join(args.output_dir, "cache")
     if args.precompute_text_embeddings:
         with torch.no_grad():
             if args.save_cache_on_disk:
