@@ -1,34 +1,84 @@
-pretrained_model_name_or_path: Qwen/Qwen-Image
+# 预训练模型的名称或路径，例如 Hugging Face Hub 的 ID 或本地路径
+pretrained_model_name_or_path: ./models/Qwen-Image-2512
+
+# 数据集加载和处理的配置
 data_config:
+  # 数据加载器的批次大小
   train_batch_size: 1
-  num_workers: 4
+  # 数据加载的工作线程数（0 表示在主进程中加载，Windows下或调试时推荐）
+  num_workers: 0
+  # 训练图像的分辨率大小
   img_size: 1024
+  # 文本描述（Caption）丢弃率，用于无分类器引导（CFG）训练
   caption_dropout_rate: 0.1
-  img_dir: ./your_lora_dataset
-  random_ratio: false # support multi crop preprocessing
+  # 包含训练图像的目录路径
+  img_dir: ./datasets/images
+  # 是否启用随机纵横比裁剪（支持多尺寸预处理）
+  random_ratio: false
+  # 标注文件的扩展名类型（例如 .txt）
   caption_type: txt
+
+# 日志报告的目标平台（如 wandb, tensorboard），null 表示不报告
 report_to: null
+
+# 训练时的总批次大小（可能会覆盖 data_config 中的设置或与之配合）
 train_batch_size: 1
-output_dir: ./test_lora_saves
+
+# 训练结果（模型权重、日志等）的输出目录
+output_dir: ./train
+
+# 最大训练步数
 max_train_steps: 3000
+# 初始学习率
 learning_rate: 3e-4
+# 学习率调度策略（如 constant, linear, cosine 等）
 lr_scheduler: constant
+# 学习率预热步数
 lr_warmup_steps: 10
+
+# Adam 优化器的 beta1 参数
 adam_beta1: 0.9
+# Adam 优化器的 beta2 参数
 adam_beta2: 0.999
+# Adam 优化器的权重衰减系数
 adam_weight_decay: 0.01
+# Adam 优化器的数值稳定性参数 epsilon
 adam_epsilon: 1e-8
+
+# 梯度裁剪的最大范数，防止梯度爆炸
 max_grad_norm: 1.0
+
+# 日志文件的保存目录
 logging_dir: logs
+
+# 混合精度训练类型（no, fp16, bf16）
 mixed_precision: "bf16"
+
+# 每隔多少步保存一次模型检查点
 checkpointing_steps: 250
+# 保存的检查点最大数量，超过限制将删除最旧的
 checkpoints_total_limit: 10
+
+# 实验跟踪的项目名称
 tracker_project_name: lora_test
+# 从哪个检查点恢复训练（latest 表示最新的）
 resume_from_checkpoint: latest
+# 梯度累积步数，用于在显存有限的情况下模拟更大的 batch size
 gradient_accumulation_steps: 1
+# LoRA 的秩（Rank），决定微调参数量的大小
 rank: 16
+
+# 预计算优化（显著提速并降低显存）
+# 是否预先计算文本嵌入以节省显存
 precompute_text_embeddings: true
+# 是否预先计算图像嵌入
 precompute_image_embeddings: true
+
+# 显存优化配置
+# 是否启用量化（通常指加载量化模型进行训练）
 quantize: true
+# 是否使用 8-bit Adam 优化器以节省显存
 adam8bit: true
+
+# 是否将缓存保存到磁盘
 save_cache_on_disk: true
