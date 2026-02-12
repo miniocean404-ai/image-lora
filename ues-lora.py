@@ -90,14 +90,47 @@ def load_pipeline(model_path, device_config):
     return pipe
 
 
-def load_lora_to_pipeline(pipe, lora_path):
-    """加载LoRA权重"""
-    try:
-        print(f"正在尝试加载LoRA: {lora_path}...")
-        pipe.load_lora_weights(f"{lora_path}")
-        print(f"✅ LoRA从 {lora_path} 加载成功")
-    except Exception as e:
-        print(f"⚠️ LoRA加载失败, 继续使用基础模型...: {e}")
+def load_lora_to_pipeline(pipe: DiffusionPipeline, lora_configs: list[tuple[str, float]]) -> DiffusionPipeline:
+    """
+    加载多个LoRA权重
+    Args:
+        pipe: DiffusionPipeline
+        lora_configs: list[(str, float)] - 多个路径及对应权重
+    """
+    if not lora_configs:
+        print("ℹ️ 没有指定有效的 LoRA 配置，跳过 LoRA 加载")
+        return pipe
+
+    # 1. 依次加载 LoRA
+    adapter_names = []
+    adapter_weights = []
+
+    print(f"🔍 准备加载 {len(lora_configs)} 个 LoRA...")
+
+    for i, config in enumerate(lora_configs):
+        if not isinstance(config, (tuple, list)) or len(config) != 2:
+            print(f"⚠️ 跳过格式不正确的 LoRA 配置: {config}")
+            continue
+
+        path, weight = config
+        adapter_name = f"lora_{i}"
+        try:
+            print(f"   [{i + 1}/{len(lora_configs)}] 加载: {path} (权重: {weight})")
+            # 指定 adapter_name 以支持多 LoRA 混合
+            pipe.load_lora_weights(path, adapter_name=adapter_name)
+            adapter_names.append(adapter_name)
+            adapter_weights.append(weight)
+        except Exception as e:
+            print(f"⚠️  加载失败: {path} -> {e}")
+
+    # 2. 激活并设置权重 (如果加载成功了至少一个)
+    if adapter_names:
+        try:
+            pipe.set_adapters(adapter_names, adapter_weights=adapter_weights)
+            print(f"✅ 成功激活 {len(adapter_names)} 个 LoRA (Weights: {adapter_weights})")
+        except Exception as e:
+            print(f"⚠️ 设置 Adapters 权重失败: {e}")
+
     return pipe
 
 
@@ -127,8 +160,8 @@ def run_inference(pipe, prompt, negative_prompt, output_path="generated_image.pn
     result = pipe(
         prompt=prompt,
         negative_prompt=negative_prompt,
-        width=1024,
-        height=1024,
+        width=1280,
+        height=720,
         num_inference_steps=50,
         true_cfg_scale=5,
         generator=torch.Generator().manual_seed(346346),
@@ -155,14 +188,18 @@ def main():
     pipe = load_pipeline(model_path, device_config)
 
     # 4. 加载 LoRA (按需修改路径)
-    lora_path = "./train/qwen2512-makeup-lora/checkpoint-2500/pytorch_lora_weights.safetensors"
-    pipe = load_lora_to_pipeline(pipe, lora_path)
+    # 仅支持带权重的列表格式: [("path1", 1.0), ("path2", 0.8)]
+    lora_configs: list[tuple[str, float]] = [
+        ("./train/qwen2512-photography-lora/checkpoint-1000/pytorch_lora_weights.safetensors", 1.0),
+        # ("./other_lora_path.safetensors", 0.8) # 示例：添加更多 LoRA
+    ]
+    pipe = load_lora_to_pipeline(pipe, lora_configs)
 
     # 5. 配置与优化
     pipe = setup_pipeline_config(pipe)
 
     # 6. 推理
-    prompt = "小红书的调性风格广告，美妆类，美女画着精致妆容，拼接为一张图 1girl, beauty, fashion, portrait, detailed"
+    prompt = f""""""
     negative_prompt = "blurry, low quality, distorted, deformed"
     run_inference(pipe, prompt, negative_prompt, "./dist/generated_image.png")
 
